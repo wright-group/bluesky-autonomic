@@ -18,25 +18,29 @@ class SDCManager:
         delay.set_offset(self.get_offset(delay.name))
 
     def set_correcation_enabled(self, opa: str, delay: str, enable: bool):
-        cur = connection.cursor()
-        cursor.executescript("UPDATE enable SET enable=? WHERE opa=?, delay=?; INSERT INTO enable (opa, delay, enable) SELECT ?, ?, ? WHERE (SELECT CHANGES()=0);", (enable, opa, delay, opa, delay, enable))
-        cur.commit()
+        with connection:
+            cur = connection.cursor()
+            cur.execute("UPDATE enable SET enable=? WHERE opa=? AND delay=?", (enable, opa, delay))
+            cur.execute("INSERT INTO enable (opa, delay, enable) SELECT ?, ?, ? WHERE (SELECT CHANGES()=0)", (opa, delay, enable))
 
 
     def on_opa_set(self, opa: str, destination: float):
         cur = connection.cursor()
-        cursor.executescript("SELECT delay FROM enable WHERE opa=?, enable=1", opa)
+        cur.execute("SELECT delay FROM enable WHERE opa=? AND enable=1", (opa,))
         delays = cur.fetchall()
+        if delays:
+            delays = delays[0]
         print(delays)
         for delay in delays:
             offset = self.get_offset(delay)
-            self.delays[delay].set_offset(offset)
+            if delay in self.delays:
+                self.delays[delay].set_offset(offset)
 
 
     def get_offset(self, delay: str) -> float:
-        return 0.1 * self.opas.values()[0].position
+        return 0.01 * list(self.opas.values())[0].position
 
-    def on_zero(self):
+    def on_zero(self, delay):
         ...
 
 sdc_manager = SDCManager()

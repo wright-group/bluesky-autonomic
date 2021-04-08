@@ -26,10 +26,10 @@ class OPADevice(object):
 
     @property
     def position(self) -> float:
-        return self._wrapped_device.position
+        return self._wrapped_device.yaq_client.get_position()
 
     def read(self) -> Dict["str", dict]:
-        return self._wrapped_device.read
+        return self._wrapped_device.read()
 
     def set(self, position: float) -> Status:
         sdc_manager.on_opa_set(self.name, position)
