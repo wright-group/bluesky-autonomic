@@ -4,6 +4,7 @@ __all__ = ["OPADevice"]
 from typing import Dict
 
 from ._sdc_manager import sdc_manager
+from ._status import Status
 
 
 class OPADevice(object):
