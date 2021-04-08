@@ -2,3 +2,5 @@
 
 
 from .__version__ import *
+from ._delay_device import *
+from ._opa_device import *
