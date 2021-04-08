@@ -14,7 +14,7 @@ class OPADevice(object):
 
     @property
     def arrangement(self) -> str:
-        raise NotImplementedError
+        return self._wrapped_device.yaq_client.get_arrangement()
 
     def describe(self) -> Dict["str", dict]:
         raise NotImplementedError

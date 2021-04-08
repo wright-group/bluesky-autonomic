@@ -55,7 +55,7 @@ class DelayDevice(object):
         self._setpoint = delay.magnitude
         delay += self.offset
         mm = delay.to("mm")
-        self._wrapped_device.set(mm.magnitude)
+        return self._wrapped_device.set(mm.magnitude)
 
     def set_factor(self, factor: int) -> None:
         delay = pint.Context("delay", defaults={"n": 1, "num_pass": 2})
