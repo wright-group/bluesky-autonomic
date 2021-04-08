@@ -7,7 +7,9 @@ import subprocess
 
 here = pathlib.Path(__file__).resolve().parent
 
+
 __all__ = ["__version__", "__branch__"]
+
 
 # read from VERSION file
 with open(str(here / "VERSION")) as f:
@@ -24,3 +26,4 @@ except:
 
 if __branch__:
     __version__ += "+" + __branch__
+
