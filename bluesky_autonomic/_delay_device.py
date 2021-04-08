@@ -2,6 +2,7 @@ __all__ = ["DelayDevice"]
 
 
 import time
+from typing import Dict
 
 import pint
 
