@@ -8,7 +8,7 @@ import pint
 
 from ._sdc_manager import sdc_manager
 from ._status import Status
-from ._db import connection
+from ._db import get_connection
 
 
 class DelayDevice(object):
@@ -20,9 +20,12 @@ class DelayDevice(object):
         self._offset = 0
         self._zero_position  = 0
         self._setpoint = self.position
+        self.parent = None
 
-        cur = connection.execute("SELECT zero_position FROM delay WHERE delay=?", (self.name,) )
+        con = get_connection()
+        cur = con.execute("SELECT zero_position FROM delay WHERE delay=?", (self.name,) )
         zero = cur.fetchone()
+        con.close()
         if zero is not None:
             self._zero_position = zero[0]
         else:
@@ -31,7 +34,13 @@ class DelayDevice(object):
         sdc_manager.register_delay(self)
 
     def describe(self) -> Dict["str", dict]:
-        raise NotImplementedError
+        out = {k + "_mm": v for k, v in self._wrapped_device.describe().items()}
+        out[f"{self.name}_zero_position"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "mm"}
+        out[f"{self.name}_setpoint"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
+        out[f"{self.name}_readback"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
+        out[f"{self.name}_offset"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
+        return out
+         
 
     @property
     def name(self):
@@ -65,13 +74,19 @@ class DelayDevice(object):
             }
         return out
 
+    def describe_configuration(self) -> Dict["str", dict]:
+        return self._wrapped_device.describe_configuration()
+
+    def read_configuration(self) -> Dict["str", dict]:
+        return self._wrapped_device.read_configuration()
+
+
     def set(self, position: float) -> Status:
         delay = self._ureg.Quantity(position, "ps")
         self._setpoint = delay.magnitude
         delay += self._ureg.Quantity(self._offset, "ps")
         mm = delay.to("mm")
         mm_with_zero = mm.magnitude+ self._zero_position
-        print(f"{self._offset}, {position=}, {delay=}, {mm=}, {mm_with_zero=}")
         return self._wrapped_device.set(mm_with_zero)
 
     def set_factor(self, factor: int) -> None:
@@ -96,9 +111,11 @@ class DelayDevice(object):
     def set_zero(self, zero: float):
         self._zero_position: float = zero
         self.set(self._setpoint)
-        with connection:
-            cur = connection.cursor()
+        con = get_connection()
+        with con:
+            cur = con.cursor()
             cur.execute("UPDATE delay SET zero_position=? WHERE delay=?", (zero, self.name))
             cur.execute("INSERT INTO delay (delay, zero_position) SELECT ?, ? WHERE (SELECT CHANGES()=0)", (self.name, zero))
+        con.close()
         sdc_manager.on_zero(self.name)
 
