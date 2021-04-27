@@ -11,7 +11,7 @@ class SDCManager:
 
     def register_opa(self, opa):
         self.opas[opa.name] = opa
-        self.on_opa_set(opa.name, opa.position)
+        self.on_opa_set(opa.name)
 
     def register_delay(self, delay):
         self.delays[delay.name] = delay
@@ -26,14 +26,12 @@ class SDCManager:
         con.close()
 
 
-    def on_opa_set(self, opa: str, destination: float):
+    def on_opa_set(self, opa: str):
         con = get_connection()
         cur = con.cursor()
         cur.execute("SELECT delay FROM enable WHERE opa=? AND enable=1", (opa,))
-        delays = cur.fetchall()
+        delays = [i[0] for i in cur.fetchall()]
         con.close()
-        if delays:
-            delays = delays[0]
 
         for delay in delays:
             offset = self.get_offset(delay)
@@ -45,14 +43,15 @@ class SDCManager:
         instrument = attune.load(f"autonomic_{delay}")
 
         con = get_connection()
+        cur = con.cursor()
         cur.execute("SELECT opa FROM enable WHERE delay=? AND enable=1", (delay,))
-        enabled = cur.fetchall()
+        enabled = [i[0] for i in cur.fetchall()]
         con.close()
 
         res = 0
         for k, v in self.opas.items():
             if k in enabled and k in instrument.arrangements and v.arrangement in instrument[k].keys():
-                res += instrument(v.position, k)[v.arrangement]
+                res += instrument[k][v.arrangement](v.position)
 
         return res
 
