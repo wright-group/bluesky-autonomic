@@ -1,6 +1,7 @@
 __all__ = ["OPADevice"]
 
 
+import time
 from typing import Dict
 
 from ._sdc_manager import sdc_manager
@@ -20,6 +21,10 @@ class OPADevice:
     @property
     def arrangement(self) -> str:
         return self._wrapped_device.yaq_client.get_arrangement()
+
+    @property
+    def instrument(self) -> str:
+        return self._wrapped_device.yaq_client.get_instrument()
 
     def describe(self) -> Dict["str", dict]:
         return self._wrapped_device.describe()
@@ -41,25 +46,26 @@ class OPADevice:
     def read(self) -> Dict["str", dict]:
         return self._wrapped_device.read()
 
-    def set(self, position: float) -> Status:
-        ret = self._wrapped_device.set(position)
+    def set(self, position: float, exceptions=None) -> Status:
+        if exceptions:
+            self._wrapped_device.yaq_client.set_position_except(position, exceptions)
+            ret = self._wrapped_device._wait_until_still()
+        else:
+            ret = self._wrapped_device.set(position)
         sdc_manager.on_opa_set(self.name)
         # TODO: join delay status to this status
         return ret
 
-    def set_position_except(self, position: float, exceptions=None):
-        if exceptions is None:
-            exceptions = []
-        ret = self._wrapped_device.set_position_except(position, exceptions)
-        sdc_manager.on_opa_set(self.name)
-        # TODO: join delay status to this status
+    @property
+    def hints(self) -> Dict:
+        return self._wrapped_device.hints
 
 class OPAMotor:
 
     def __init__(self, device: OPADevice, motor: str):
         self._wrapped_device = device._wrapped_device
         self._motor = motor
-        self.parent = device
+        self.parent = None
 
     def describe(self) -> Dict["str", dict]:
         return {
@@ -78,14 +84,21 @@ class OPAMotor:
 
     @property
     def name(self):
-        return f"{self._wrapped_device.name}.{self._motor}"
+        return self._motor
 
     @property
     def position(self) -> float:
         return self._wrapped_device.yaq_client.get_setable_positions()[self._motor]
 
     def read(self) -> Dict["str", dict]:
-        return {self.name: self.position}
+        return {self.name: {"value": self.position, "timestamp": time.time()}}
 
     def set(self, position: float) -> Status:
-        return self._wrapped_device.yaq_client.set_setable_positions({self._motor:position})
+        self._wrapped_device.yaq_client.set_setable_positions({self._motor:position})
+        return self._wrapped_device._wait_until_still()
+    
+    @property
+    def hints(self) -> Dict:
+        out: Dict = {}
+        out["fields"] = [self.name]
+        return out
