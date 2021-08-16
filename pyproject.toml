@@ -10,7 +10,7 @@ author-email = "git@ksunden.space"
 home-page = "https://github.com/wright-group/bluesky-autonomic"
 description-file = "README.md"
 requires-python = ">=3.7"
-requires = ["attune", "pint"]
+requires = ["attune", "pint", "happi", "yaqc_bluesky"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Science/Research",
@@ -29,6 +29,9 @@ Issues = "https://github.com/wright-group/bluesky-autonomic/issues"
 
 [tool.flit.metadata.requires-extra]
 dev = ["black", "pre-commit"]
+
+[tool.flit.entrypoints."happi.containers"]
+wright = "bluesky_autonomic._happi"
 
 [tool.black]
 line-length = 99

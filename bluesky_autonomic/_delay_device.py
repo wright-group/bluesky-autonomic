@@ -5,6 +5,7 @@ import time
 from typing import Dict
 
 import pint
+import yaqc_bluesky
 
 from ._sdc_manager import sdc_manager
 from ._status import Status
@@ -13,13 +14,13 @@ from ._db import get_connection
 
 class DelayDevice(object):
 
-    def __init__(self, device):
+    def __init__(self, port, *, host=None, name=None):
         self._ureg = pint.UnitRegistry()
         self.set_factor(2)  # TODO: have system to store and set this from state by manager
         self._offset = 0
         self._zero_position  = 0
         self._setpoint = self.position
-        self.parent = device
+        self.parent = yaqc_bluesky(port=port, host=host, name=name)
 
         con = get_connection()
         cur = con.execute("SELECT zero_position FROM delay WHERE delay=?", (self.name,) )
@@ -39,7 +40,7 @@ class DelayDevice(object):
         out[f"{self.name}_readback"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
         out[f"{self.name}_offset"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
         return out
-         
+
 
     @property
     def name(self):
@@ -106,7 +107,7 @@ class DelayDevice(object):
         # set offset in delay units
         self._offset: float = offset
         self.set(self._setpoint)
-    
+
     def set_zero(self, zero: float):
         self._zero_position: float = zero
         self.set(self._setpoint)
