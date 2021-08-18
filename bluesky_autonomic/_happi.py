@@ -14,7 +14,7 @@ class DelayItem(HappiItem):
     host = EntryInfo("Host.", optional=True, default="localhost")
     kwargs = copy.copy(HappiItem.kwargs)
     kwargs.default = {"port": "{{port}}", "host": "{{host}}", "name": "{{name}}"}
-    device_class = EntryInfo(default="yaqc_bluesky.Device")
+    device_class = EntryInfo(default="bluesky_autonomic.DelayDevice")
 
 
 class OPAItem(HappiItem):
@@ -22,4 +22,4 @@ class OPAItem(HappiItem):
     host = EntryInfo("Host.", optional=True, default="localhost")
     kwargs = copy.copy(HappiItem.kwargs)
     kwargs.default = {"port": "{{port}}", "host": "{{host}}", "name": "{{name}}"}
-    device_class = EntryInfo(default="yaqc_bluesky.Device")
+    device_class = EntryInfo(default="bluesky_autonomic.OPADevice")

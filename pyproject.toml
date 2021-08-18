@@ -31,7 +31,7 @@ Issues = "https://github.com/wright-group/bluesky-autonomic/issues"
 dev = ["black", "pre-commit"]
 
 [tool.flit.entrypoints."happi.containers"]
-wright = "bluesky_autonomic._happi"
+bluesky_autonomic = "bluesky_autonomic._happi"
 
 [tool.black]
 line-length = 99

@@ -15,12 +15,12 @@ from ._db import get_connection
 class DelayDevice(object):
 
     def __init__(self, port, *, host=None, name=None):
+        self.parent = yaqc_bluesky.Device(port=port, host=host, name=name)
         self._ureg = pint.UnitRegistry()
         self.set_factor(2)  # TODO: have system to store and set this from state by manager
         self._offset = 0
         self._zero_position  = 0
         self._setpoint = self.position
-        self.parent = yaqc_bluesky(port=port, host=host, name=name)
 
         con = get_connection()
         cur = con.execute("SELECT zero_position FROM delay WHERE delay=?", (self.name,) )

@@ -13,8 +13,8 @@ from ._status import Status
 class OPADevice:
 
     def __init__(self, host, *, port=None, name=None):
+        self.parent = yaqc_bluesky.Device(port=port, host=host, name=name)
         sdc_manager.register_opa(self)
-        self.parent = yaqc_bluesky(port=port, host=host, name=name)
         yaqclient = self.parent.yaq_client
         for mot in yaqclient.get_setable_names():
             setattr(self, mot, OPAMotor(self, mot))
