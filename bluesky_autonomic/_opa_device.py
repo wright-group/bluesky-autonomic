@@ -11,11 +11,11 @@ from ._status import Status
 class OPADevice:
 
     def __init__(self, device):
-        sdc_manager.register_opa(self)
         self.parent = device
         yaqclient = self.parent.yaq_client
         for mot in yaqclient.get_setable_names():
             setattr(self, mot, OPAMotor(self, mot))
+        sdc_manager.register_opa(self)
 
     @property
     def arrangement(self) -> str:
