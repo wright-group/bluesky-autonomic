@@ -4,15 +4,17 @@ __all__ = ["OPADevice"]
 import time
 from typing import Dict
 
+import yaqc_bluesky
+
 from ._sdc_manager import sdc_manager
 from ._status import Status
 
 
 class OPADevice:
 
-    def __init__(self, device):
+    def __init__(self, host, *, port=None, name=None):
+        self.parent = yaqc_bluesky.Device(port=port, host=host, name=name)
         sdc_manager.register_opa(self)
-        self.parent = device
         yaqclient = self.parent.yaq_client
         for mot in yaqclient.get_setable_names():
             setattr(self, mot, OPAMotor(self, mot))
@@ -95,7 +97,7 @@ class OPAMotor:
     def set(self, position: float) -> Status:
         self.parent.yaq_client.set_setable_positions({self._motor:position})
         return self.parent._wait_until_still()
-    
+
     @property
     def hints(self) -> Dict:
         out: Dict = {}
