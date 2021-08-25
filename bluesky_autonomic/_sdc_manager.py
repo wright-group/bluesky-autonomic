@@ -40,7 +40,11 @@ class SDCManager:
 
 
     def get_offset(self, delay: str) -> float:
-        instrument = attune.load(f"autonomic_{delay}")
+        try:
+            instrument = attune.load(f"autonomic_{delay}")
+        except:
+            instrument = attune.Instrument({}, {}, name=f"autonomic_{delay}")
+            attune.store(instrument)
 
         con = get_connection()
         cur = con.cursor()
@@ -56,7 +60,12 @@ class SDCManager:
         return res
 
     def on_zero(self, delay):
-        instrument = attune.load(f"autonomic_{delay}")
+        try:
+            instrument = attune.load(f"autonomic_{delay}")
+        except:
+            instrument = attune.Instrument({}, {}, name=f"autonomic_{delay}")
+            attune.store(instrument)
+
         for arr in instrument.arrangements:
             if opas[arr].arrangement in instrument[arr].keys():
                 instrument = attune.offset_to(instrument, arr, opas[arr].arrangement, 0, opas[arr].position)
