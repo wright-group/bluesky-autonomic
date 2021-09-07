@@ -59,7 +59,7 @@ class DelayDevice(object):
 
     def read(self) -> Dict["str", dict]:
         out = {}
-        timestamp = list(out.values())[0]["timestamp"]
+        timestamp = list(self.parent.read().values())[0]["timestamp"]
         out[f"{self.name}_setpoint"] = {
             "value": self._setpoint,
             "timestamp": timestamp
