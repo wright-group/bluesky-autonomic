@@ -34,10 +34,11 @@ class DelayDevice(object):
         sdc_manager.register_delay(self)
 
     def describe(self) -> Dict["str", dict]:
-        out = {k + "_mm": v for k, v in self.parent.describe().items()}
-        out[f"{self.name}_zero_position"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "mm"}
+        out = {}
         out[f"{self.name}_setpoint"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
         out[f"{self.name}_readback"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
+        out.update({k + "_mm": v for k, v in self.parent.describe().items()})
+        out[f"{self.name}_zero_position"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "mm"}
         out[f"{self.name}_offset"] = {"source": "DelayDevice", "dtype": "number", "shape": [], "units": "ps"}
         return out
 
@@ -57,9 +58,8 @@ class DelayDevice(object):
         return delay.magnitude
 
     def read(self) -> Dict["str", dict]:
-        out = {k + "_mm": v for k, v in self.parent.read().items()}
-        timestamp = list(out.values())[0]["timestamp"]
-        out[f"{self.name}_zero_position"] = {"value": self._zero_position, "timestamp": timestamp}
+        out = {}
+        timestamp = list(self.parent.read().values())[0]["timestamp"]
         out[f"{self.name}_setpoint"] = {
             "value": self._setpoint,
             "timestamp": timestamp
@@ -68,6 +68,8 @@ class DelayDevice(object):
             "value": self.position,
             "timestamp": timestamp
             }
+        out.update({k + "_mm": v for k, v in self.parent.read().items()})
+        out[f"{self.name}_zero_position"] = {"value": self._zero_position, "timestamp": timestamp}
         out[f"{self.name}_offset"] = {
             "value": self._offset,
             "timestamp": timestamp
