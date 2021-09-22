@@ -1,5 +1,11 @@
 # bluesky-autonomic
 
+## Archive notice
+
+This project has been archived because the functionality was deemed rather specific to the usecase of yaq, and has been moved to `yaqd-attune` directly rather than this implementation using bluesky side shims.
+
+It is kept here as a record of our past implementation, but was never deemed complete and will not be recieving updates for the forseeable future.
+
 A project to add "reflexes" to bluesky settable devices.
 
 ## happi
